@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import '../styles/GuideDashboard.css';
-import { getBookings, updateBooking } from '../api/auth';
+import { getAssetUrl, getBookings, updateBooking } from '../api/auth';
 import BookingChat from '../components/BookingChat';
 
 /* ---------- Icons ---------- */
@@ -149,7 +149,7 @@ function GuideDashboard({ currentUser }) {
           {/* ---------- Profile ---------- */}
           <section className="gd-profile" aria-label="Guide profile">
             <div className="gd-profile__top">
-              <img className="gd-profile__photo" src={guidePhoto} alt={guideName} />
+              <img className="gd-profile__photo" src={getAssetUrl(guidePhoto)} alt={guideName} />
               <div className="gd-profile__info">
                 <h1>
                   {guideName}

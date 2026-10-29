@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { registerGuide, registerTraveler } from '../api/auth';
 import '../styles/Home.css';
 
@@ -20,6 +20,11 @@ const Home = ({ role, onBack }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [registeredUser, setRegisteredUser] = useState(null);
+  const [profilePic, setProfilePic] = useState(null);
+
+  useEffect(() => () => {
+    if (profilePic?.preview) URL.revokeObjectURL(profilePic.preview);
+  }, [profilePic]);
 
   const updateField = (event) => {
     const { name, value } = event.target;
@@ -64,7 +69,7 @@ const Home = ({ role, onBack }) => {
         };
       const response = role === 'traveler'
         ? await registerTraveler(payload)
-        : await registerGuide(payload);
+        : await registerGuide(payload, profilePic?.file);
       setRegisteredUser(response.user);
     } catch (submitError) {
       const fieldErrors = Object.entries(submitError.details || {})
@@ -143,8 +148,31 @@ const Home = ({ role, onBack }) => {
         <div className="registration-card">
           <h2>Tour Guide Registration</h2>
           <p className="subtitle">Set up your guide profile and connect with tourists.</p>
-
           <form className="form-grid" onSubmit={handleSubmit}>
+            <div className="profile-pic-upload full-width">
+              <div className="profile-pic-circle">
+                {profilePic ? <img src={profilePic.preview} alt="Guide profile preview" /> : <span aria-hidden="true">👤</span>}
+              </div>
+              <label className="form-group" htmlFor="guide-profile-photo">
+                <span>Profile photo (optional, max 5 MB)</span>
+                <input
+                  id="guide-profile-photo"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    if (!file) return;
+                    if (!file.type.startsWith('image/') || file.size > 5 * 1024 * 1024) {
+                      setError('Choose an image file smaller than 5 MB.');
+                      event.target.value = '';
+                      return;
+                    }
+                    setError('');
+                    setProfilePic({ file, preview: URL.createObjectURL(file) });
+                  }}
+                />
+              </label>
+            </div>
             <div className="form-group">
               <label htmlFor="guide-full-name">Full Name</label>
               <input id="guide-full-name" name="fullName" type="text" autoComplete="name" placeholder="Nuwan Jayawardena" value={form.fullName} onChange={updateField} minLength="2" maxLength="150" required />

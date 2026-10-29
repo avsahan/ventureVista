@@ -171,6 +171,16 @@ async function registerGuide(data) {
       verification_status: "pending"
     };
 
+    if (data.profilePhoto) {
+      if (!profileColumns.has("profile_photo_data") || !profileColumns.has("profile_photo_mime_type")) {
+        const error = new Error("Guide photo storage is not configured. Apply migration 003-add-guide-profile-photo.sql.");
+        error.status = 503;
+        throw error;
+      }
+      guideValues.profile_photo_data = data.profilePhoto.data;
+      guideValues.profile_photo_mime_type = data.profilePhoto.mimeType;
+    }
+
     for (const [column, value] of Object.entries(guideValues)) {
       if (profileColumns.has(column)) profileRecord[column] = value;
     }
@@ -185,7 +195,8 @@ async function registerGuide(data) {
       fullName: data.fullName,
       email: data.email,
       role: "guide",
-      verificationStatus: "pending"
+      verificationStatus: "pending",
+      profilePhotoPath: data.profilePhoto ? `/api/v1/auth/guides/${userId}/photo` : ""
     };
   } catch (error) {
     await connection.rollback();
@@ -258,6 +269,9 @@ async function getUserById(id) {
   const guideColumn = (column, alias) => guideColumns.has(column)
     ? `gp.${column} AS ${alias}`
     : `NULL AS ${alias}`;
+  const guidePhotoColumn = guideColumns.has("profile_photo_data")
+    ? "gp.profile_photo_data IS NOT NULL AS guide_has_photo"
+    : "0 AS guide_has_photo";
 
   const [rows] = await db.execute(
     `SELECT u.id, u.${nameColumn} AS full_name, u.email, u.role,
@@ -271,7 +285,8 @@ async function getUserById(id) {
             ${guideColumn("short_bio", "guide_short_bio")},
             ${guideColumn("languages", "guide_languages")},
             ${guideColumn("verification_status", "guide_verification_status")},
-            ${guideColumn("profile_photo_path", "guide_photo_path")}
+            ${guideColumn("profile_photo_path", "guide_photo_path")},
+            ${guidePhotoColumn}
      FROM users u
      LEFT JOIN traveler_profiles tp ON tp.user_id = u.id
      LEFT JOIN guide_profiles gp ON gp.user_id = u.id
@@ -322,7 +337,9 @@ async function getUserById(id) {
           : user.guide_languages)
         : [],
       verificationStatus: user.guide_verification_status || "pending",
-      profilePhotoPath: user.guide_photo_path || ""
+      profilePhotoPath: user.guide_has_photo
+        ? `/api/v1/auth/guides/${user.id}/photo`
+        : user.guide_photo_path || ""
     } : {})
   };
 }
@@ -341,10 +358,14 @@ async function listGuides() {
     ? "gp.verification_status"
     : "'pending'";
   const languagesColumn = guideColumns.has("languages") ? "gp.languages" : "NULL";
+  const photoColumn = guideColumns.has("profile_photo_data")
+    ? "gp.profile_photo_data IS NOT NULL"
+    : "0";
   const [rows] = await db.execute(
     `SELECT u.id, ${guideNameColumn} AS full_name, ${locationColumn} AS location,
             ${priceColumn} AS daily_rate_lkr, ${bioColumn} AS short_bio,
-            ${statusColumn} AS verification_status, ${languagesColumn} AS languages
+            ${statusColumn} AS verification_status, ${languagesColumn} AS languages,
+            ${photoColumn} AS has_profile_photo
      FROM users u
      INNER JOIN guide_profiles gp ON gp.user_id = u.id
      WHERE u.role = 'guide'
@@ -359,12 +380,33 @@ async function listGuides() {
     description: guide.short_bio || `Discover local experiences with ${guide.full_name}.`,
     price: Number(guide.daily_rate_lkr) || 0,
     rating: null,
-    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=900&q=85',
+    image: guide.has_profile_photo
+      ? `/api/v1/auth/guides/${guide.id}/photo`
+      : 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=900&q=85',
     verificationStatus: guide.verification_status || 'pending',
     languages: guide.languages
       ? (typeof guide.languages === 'string' ? JSON.parse(guide.languages) : guide.languages)
       : []
   }));
+}
+
+async function getGuidePhoto(id) {
+  if (!/^\d+$/.test(String(id))) return null;
+
+  const columns = await getTableColumns(db, "guide_profiles");
+  if (!columns.has("profile_photo_data") || !columns.has("profile_photo_mime_type")) {
+    return null;
+  }
+
+  const [rows] = await db.execute(
+    `SELECT profile_photo_data AS data, profile_photo_mime_type AS mime_type
+     FROM guide_profiles
+     WHERE user_id = ? AND profile_photo_data IS NOT NULL
+     LIMIT 1`,
+    [id]
+  );
+  if (!rows[0]) return null;
+  return { data: rows[0].data, mimeType: rows[0].mime_type };
 }
 
 // ========================================
@@ -375,5 +417,6 @@ module.exports = {
   registerGuide,
   login,
   getUserById,
-  listGuides
+  listGuides,
+  getGuidePhoto
 };

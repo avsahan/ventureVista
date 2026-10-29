@@ -4,6 +4,13 @@ const API_ORIGIN = (configuredApiUrl || (import.meta.env.DEV
   : 'https://rpv01-backend-1.onrender.com')).replace(/\/+$/, '');
 const API_BASE = `${API_ORIGIN}/api/v1`;
 
+export const getAssetUrl = (path) => {
+  if (!path) return '';
+  return /^https?:\/\//i.test(path)
+    ? path
+    : `${API_ORIGIN}${path.startsWith('/') ? path : `/${path}`}`;
+};
+
 function apiError(message, status = 0, details) {
   const error = new Error(message || 'The request could not be completed.');
   error.status = status;
@@ -18,7 +25,7 @@ async function requestApi(path, options = {}) {
       ...options,
       credentials: 'include',
       headers: {
-        'Content-Type': 'application/json',
+        ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
         ...options.headers,
       },
     });
@@ -48,7 +55,12 @@ function post(path, data) {
 }
 
 export const registerTraveler = (data) => post('/register/traveler', data);
-export const registerGuide = (data) => post('/register/guide', data);
+export const registerGuide = (data, profilePhoto) => {
+  const body = new FormData();
+  body.append('profile', JSON.stringify(data));
+  if (profilePhoto) body.append('profilePhoto', profilePhoto);
+  return requestAuth('/register/guide', { method: 'POST', body });
+};
 export const login = (data) => post('/login', data);
 export const getCurrentUser = () => requestAuth('/me');
 export const getGuides = () => requestAuth('/guides');

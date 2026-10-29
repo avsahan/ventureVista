@@ -1,9 +1,7 @@
 
-require("dotenv").config();
-
 const { createServer } = require("node:http");
-const app = require("./app");
 const pool = require("./config/db");
+const app = require("./app");
 const { Server } = require("socket.io");
 const jwt = require("jsonwebtoken");
 const cookie = require("cookie");

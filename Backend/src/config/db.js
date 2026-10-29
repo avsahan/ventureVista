@@ -1,10 +1,19 @@
 
-require("dotenv").config();
+const path = require("node:path");
+const envPath = path.resolve(__dirname, "../../.env");
+require("dotenv").config({ path: envPath });
 
 const mysql = require("mysql2/promise");
 
-if (!process.env.DB_HOST) {
-  console.log("Could not load environment variables from .env file. Please make sure the file exists and is properly configured.");
+const missingVariables = ["DB_USER", "DB_NAME"].filter(
+  (variable) => !process.env[variable]?.trim()
+);
+
+if (missingVariables.length > 0) {
+  throw new Error(
+    `Missing required database environment variables: ${missingVariables.join(", ")}. ` +
+    `Create ${envPath} from .env.example and set your MySQL credentials.`
+  );
 }
 
 const pool = mysql.createPool({

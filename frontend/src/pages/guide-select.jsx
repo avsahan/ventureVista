@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { getGuides } from '../api/auth';
+import { getAssetUrl, getGuides } from '../api/auth';
 import '../styles/GuideSelect.css';
 
 const formatMoney = (amount) => `LKR ${amount.toLocaleString('en-LK')}`;
@@ -11,7 +11,7 @@ function GuideProfileDialog({ guide, onClose, onRequest }) {
     <div className="guide-dialog-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <section className="guide-dialog" role="dialog" aria-modal="true" aria-labelledby="guide-dialog-title">
         <button className="guide-dialog__close" type="button" onClick={onClose} aria-label="Close guide profile">×</button>
-        <img src={guide.image} alt={guide.name} />
+        <img src={getAssetUrl(guide.image)} alt={guide.name} />
         <div className="guide-dialog__content">
           <p className="guide-eyebrow">Local guide · {guide.location}</p>
           <h2 id="guide-dialog-title">{guide.name}</h2>
@@ -124,7 +124,7 @@ function GuideSelect({ tripDetails = {}, onBack, onRequestGuide }) {
             {visibleGuides.map((guide) => (
               <article className="guide-card" key={guide.id || guide.name}>
                 <div className="guide-card__photo-wrap">
-                  <img className="guide-card__photo" src={guide.image} alt={guide.name} loading="lazy" />
+                  <img className="guide-card__photo" src={getAssetUrl(guide.image)} alt={guide.name} loading="lazy" />
                   {/* <span className="guide-card__badge">
                     {guide.verificationStatus === 'pending' ? 'Pending verification' : 'Vetted local guide'}
                   </span> */}

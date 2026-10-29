@@ -124,7 +124,22 @@ async function registerTraveler(req, res, next) {
 
 async function registerGuide(req, res, next) {
   try {
-    const data = validate(guideSchema, req.body);
+    let profile;
+    try {
+      profile = JSON.parse(req.body.profile);
+    } catch {
+      const error = new Error("Please submit a valid guide profile");
+      error.status = 400;
+      throw error;
+    }
+
+    const data = validate(guideSchema, profile);
+    if (req.file) {
+      data.profilePhoto = {
+        data: req.file.buffer,
+        mimeType: req.file.mimetype,
+      };
+    }
 
     const user = await authService.registerGuide(data);
 
@@ -133,6 +148,22 @@ async function registerGuide(req, res, next) {
       message: "Guide application submitted for verification",
       user,
     });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+async function guidePhoto(req, res, next) {
+  try {
+    const photo = await authService.getGuidePhoto(req.params.id);
+    if (!photo) {
+      return res.status(404).json({ success: false, message: "Guide photo not found" });
+    }
+
+    res.set("Content-Type", photo.mimeType);
+    res.set("Cache-Control", "public, max-age=86400");
+    res.set("X-Content-Type-Options", "nosniff");
+    return res.send(photo.data);
   } catch (error) {
     return next(error);
   }
@@ -242,6 +273,7 @@ function logout(req, res) {
 module.exports = {
   registerTraveler,
   registerGuide,
+  guidePhoto,
   login,
   me,
   listGuides,

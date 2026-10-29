@@ -38,6 +38,8 @@ CREATE TABLE IF NOT EXISTS guide_profiles (
     user_id BIGINT UNSIGNED NOT NULL,
     full_name VARCHAR(150) NOT NULL,
     profile_photo_path VARCHAR(500) NULL,
+    profile_photo_data MEDIUMBLOB NULL,
+    profile_photo_mime_type VARCHAR(50) NULL,
     contact_number VARCHAR(20) NOT NULL,
     location VARCHAR(150) NOT NULL,
     years_experience INT UNSIGNED DEFAULT 0,

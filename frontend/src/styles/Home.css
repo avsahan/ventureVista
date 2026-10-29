@@ -218,3 +218,28 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.profile-pic-upload {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 16px 0;
+}
+
+.profile-pic-circle {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #eee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+}
+
+.profile-pic-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

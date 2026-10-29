@@ -13,6 +13,8 @@ function errorHandler(err, req, res, next) {
     return next(err);
   }
 
+  if (err.code === "LIMIT_FILE_SIZE") err.status = 413;
+  if (err.code === "LIMIT_UNEXPECTED_FILE") err.status = 400;
   const duplicateKey = err.code === "ER_DUP_ENTRY";
   const status = err.status || (duplicateKey ? 409 : 500);
 
