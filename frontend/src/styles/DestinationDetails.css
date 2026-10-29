@@ -1,0 +1,263 @@
+
+.destination-details {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+  color: #1e293b;
+}
+
+.destination-back {
+  margin-bottom: 1.5rem;
+  padding: 0.65rem 0;
+  border: none;
+  background: transparent;
+  color: #475569;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.destination-back:hover {
+  color: #0f766e;
+}
+
+.destination-hero {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  align-items: center;
+  gap: 2.5rem;
+  margin-bottom: 3.5rem;
+}
+
+.destination-cover {
+  width: 100%;
+  height: 390px;
+  display: block;
+  object-fit: cover;
+  border-radius: 20px;
+}
+
+.destination-hero-content {
+  min-width: 0;
+}
+
+.destination-category {
+  display: inline-block;
+  margin-bottom: 0.8rem;
+  color: #0f766e;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.destination-hero-content h1 {
+  margin: 0 0 0.75rem;
+  color: #0f172a;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.15;
+}
+
+.destination-location {
+  margin-bottom: 1rem;
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.destination-hero-content > p:last-of-type {
+  color: #475569;
+  font-size: 1rem;
+  line-height: 1.8;
+}
+
+.destination-plan-button {
+  margin-top: 0.75rem;
+  padding: 0.85rem 1.2rem;
+  border: none;
+  border-radius: 9px;
+  background: #0f766e;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.destination-plan-button:hover {
+  background: #115e59;
+}
+
+.destination-content-section {
+  margin-top: 3rem;
+}
+
+.destination-content-section h2,
+.destination-map-placeholder h2 {
+  margin: 0 0 0.75rem;
+  color: #0f172a;
+  font-size: 1.65rem;
+}
+
+.destination-section-intro {
+  margin-bottom: 1.5rem;
+  color: #64748b;
+  line-height: 1.7;
+}
+
+.destination-place-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.destination-place-card {
+  padding: 1.35rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #fff;
+}
+
+.destination-place-icon {
+  margin-bottom: 0.8rem;
+  font-size: 1.4rem;
+}
+
+.destination-place-card h3 {
+  margin: 0 0 0.65rem;
+  color: #1e293b;
+  font-size: 1.05rem;
+}
+
+.destination-place-card p {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.9rem;
+  line-height: 1.7;
+}
+
+.destination-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.destination-gallery-item {
+  overflow: hidden;
+  margin: 0;
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+.destination-gallery-item img {
+  display: block;
+  width: 100%;
+  height: 210px;
+  object-fit: cover;
+}
+
+.destination-gallery-item p {
+  margin: 0;
+  padding: 0.8rem;
+  color: #334155;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.destination-tips {
+  display: grid;
+  gap: 0.8rem;
+  padding-left: 1.3rem;
+  color: #475569;
+  line-height: 1.7;
+}
+
+.destination-disclaimer {
+  margin-top: 1rem;
+  color: #64748b;
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+
+.destination-map-placeholder {
+  margin-top: 3rem;
+  padding: 2.5rem 1.5rem;
+  border: 1px dashed #cbd5e1;
+  border-radius: 16px;
+  background: #f8fafc;
+  text-align: center;
+}
+
+.destination-map-placeholder > span {
+  display: block;
+  margin-bottom: 0.8rem;
+  font-size: 2rem;
+}
+
+.destination-map-placeholder p {
+  max-width: 520px;
+  margin: 0 auto;
+  color: #64748b;
+  line-height: 1.7;
+}
+
+@media (max-width: 760px) {
+  .destination-hero {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .destination-cover {
+    height: 300px;
+  }
+
+  .destination-place-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .destination-gallery {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 500px) {
+  .destination-details {
+    padding: 1.25rem 1rem 3rem;
+  }
+
+  .destination-cover {
+    height: 240px;
+  }
+
+  .destination-place-grid,
+  .destination-gallery {
+    grid-template-columns: 1fr;
+  }
+
+  .destination-gallery-item img {
+    height: 230px;
+  }
+}
+
+.destination-map-section {
+  margin: 40px 0;
+}
+
+.destination-map-section h2 {
+  margin-bottom: 10px;
+}
+
+.destination-map-section p {
+  margin-bottom: 20px;
+  color: #666;
+}
+
+.destination-map {
+  width: 100%;
+  height: 400px;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+}
+
+.destination-map .leaflet-container {
+  height: 100%;
+  width: 100%;
+  z-index: 1;
+}
