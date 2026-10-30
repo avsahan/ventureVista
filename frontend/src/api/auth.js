@@ -61,6 +61,12 @@ export const registerGuide = (data, profilePhoto) => {
   if (profilePhoto) body.append('profilePhoto', profilePhoto);
   return requestAuth('/register/guide', { method: 'POST', body });
 };
+export const updateGuideProfile = (data, profilePhoto) => {
+  const body = new FormData();
+  body.append('profile', JSON.stringify(data));
+  if (profilePhoto) body.append('profilePhoto', profilePhoto);
+  return requestAuth('/guide/profile', { method: 'PATCH', body });
+};
 export const login = (data) => post('/login', data);
 export const getCurrentUser = () => requestAuth('/me');
 export const getGuides = () => requestAuth('/guides');

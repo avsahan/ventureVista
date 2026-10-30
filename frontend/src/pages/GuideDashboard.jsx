@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import '../styles/GuideDashboard.css';
-import { getAssetUrl, getBookings, updateBooking } from '../api/auth';
+import { getAssetUrl, getBookings, updateBooking, updateGuideProfile } from '../api/auth';
 import BookingChat from '../components/BookingChat';
 
 /* ---------- Icons ---------- */
@@ -81,13 +81,17 @@ function GuideStatus({ status }) {
   );
 }
 
-function GuideDashboard({ currentUser }) {
+function GuideDashboard({ currentUser, onProfileUpdated }) {
   const [requests, setRequests] = useState([]);
   const [activeTab, setActiveTab] = useState('pending');
   const [counterId, setCounterId] = useState(null);
   const [counterValue, setCounterValue] = useState('');
   const [chatBookingId, setChatBookingId] = useState(null);
   const [loadError, setLoadError] = useState('');
+  const [isProfileEditorOpen, setIsProfileEditorOpen] = useState(false);
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [profileError, setProfileError] = useState('');
+  const [profilePhoto, setProfilePhoto] = useState(null);
   const guideName = currentUser?.fullName || 'Local guide';
   const guideLocation = currentUser?.baseLocation || 'Sri Lanka';
   const guidePhoto = currentUser?.profilePhotoPath || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=180&q=85';
@@ -142,40 +146,109 @@ function GuideDashboard({ currentUser }) {
     setActiveTab('chat');
   };
 
+  const saveProfile = async (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const profile = {
+      fullName: formData.get('fullName').trim(),
+      telephoneNumber: formData.get('telephoneNumber').trim(),
+      yearsExperience: Number(formData.get('yearsExperience')),
+      dailyRateLkr: Number(formData.get('dailyRateLkr')),
+      baseLocation: formData.get('baseLocation').trim(),
+      languages: formData.get('languages').split(',').map((language) => language.trim()).filter(Boolean),
+      shortBio: formData.get('shortBio').trim(),
+      sltdaLicenseNumber: formData.get('sltdaLicenseNumber').trim(),
+    };
+
+    setIsSavingProfile(true);
+    setProfileError('');
+    try {
+      const { user } = await updateGuideProfile(profile, profilePhoto);
+      onProfileUpdated?.(user);
+      setIsProfileEditorOpen(false);
+      setProfilePhoto(null);
+    } catch (error) {
+      setProfileError(error.message || 'Unable to save your profile. Please try again.');
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
+
   return (
     <>
       <main className="gd-dashboard">
         <div className="gd-dashboard__inner">
           {/* ---------- Profile ---------- */}
-          <section className="gd-profile" aria-label="Guide profile">
-            <div className="gd-profile__top">
+          <section className="gd-profile" aria-label="My guide profile">
+            <div className="gd-profile__header">
+              <h2>My profile</h2>
+            </div>
+            <div className="gd-profile__identity">
               <img className="gd-profile__photo" src={getAssetUrl(guidePhoto)} alt={guideName} />
-              <div className="gd-profile__info">
-                <h1>
-                  {guideName}
-                  <span className="gd-verified">
-                    <CircleCheckIcon size={14} />
-                    {verificationStatus === 'approved' ? 'Verified Guide' : 'Pending Verification'}
-                  </span>
-                </h1>
-                <p className="gd-profile__title">Local guide · {guideLocation}</p>
-                <p className="gd-profile__bio">{currentUser?.shortBio || 'Your guide profile and local expertise.'}</p>
+              <h1>{guideName}</h1>
+              <p>Local guide · {guideLocation}</p>
+              <span className={`gd-profile__verification${verificationStatus === 'approved' ? ' is-approved' : ''}`}>
+                <CircleCheckIcon size={14} />
+                {verificationStatus === 'approved' ? 'Verified guide' : 'Pending verification'}
+              </span>
+            </div>
+            <div className="gd-profile__details">
+              <div className="gd-detail">
+                <span>Full name</span>
+                <strong>{guideName}</strong>
+              </div>
+              <div className="gd-detail">
+                <span>Email address</span>
+                <strong>{currentUser?.email || 'Not provided'}</strong>
+              </div>
+              <div className="gd-detail">
+                <span>Contact phone</span>
+                <strong>{currentUser?.telephoneNumber || 'Not provided'}</strong>
+              </div>
+              <div className="gd-detail">
+                <span>Base location</span>
+                <strong>{guideLocation}</strong>
+              </div>
+              <div className="gd-detail">
+                <span>Experience</span>
+                <strong>{Number(currentUser?.yearsExperience) || 0} years</strong>
+              </div>
+              <div className="gd-detail">
+                <span>SLTDA license number</span>
+                <strong>{currentUser?.sltdaLicenseNumber || 'Not provided'}</strong>
+              </div>
+              <div className="gd-detail gd-detail--languages">
+                <span>Languages</span>
+                <div className="gd-profile__languages">
+                  {(Array.isArray(currentUser?.languages) ? currentUser.languages : []).length
+                    ? currentUser.languages.map((language) => <span className="gd-language-chip" key={language}>{language}</span>)
+                    : <strong>Not provided</strong>}
+                </div>
+              </div>
+              <div className="gd-detail gd-detail--bio">
+                <span>About you</span>
+                <strong>{currentUser?.shortBio || 'Add a short introduction to your guide profile.'}</strong>
               </div>
               <div className="gd-fee">
-                <span>Standard Daily Fee</span>
-                <p><strong>{formatMoney(Number(currentUser?.dailyRateLkr) || 0)}</strong> / day</p>
-                <small><span aria-hidden="true" /> {verificationStatus === 'approved' ? 'Available for booking' : 'Profile awaiting review'}</small>
+                <span>Daily guiding fee</span>
+                <strong>{formatMoney(Number(currentUser?.dailyRateLkr) || 0)} / day</strong>
+                <small>{verificationStatus === 'approved' ? 'Available for booking' : 'Profile awaiting review'}</small>
               </div>
-            </div>
-            <div className="gd-profile__bottom">
-              <div className="gd-detail"><span>Base location</span><strong>{guideLocation}</strong></div>
-              <div className="gd-detail"><span>Experience</span><strong>{currentUser?.yearsExperience || 0} years</strong></div>
-              <div className="gd-detail"><span>Contact phone</span><strong>{currentUser?.telephoneNumber || 'Not provided'}</strong></div>
-              <div className="gd-detail"><span>License no.</span><strong>{currentUser?.sltdaLicenseNumber || 'Not provided'}</strong></div>
-              <button className="gd-button" type="button"><PencilIcon size={14} /> Edit Profile &amp; Details</button>
+              <button
+                className="gd-button gd-button--primary gd-profile__edit"
+                type="button"
+                onClick={() => {
+                  setProfileError('');
+                  setProfilePhoto(null);
+                  setIsProfileEditorOpen(true);
+                }}
+              >
+                <PencilIcon size={14} /> Edit profile details
+              </button>
             </div>
           </section>
 
+          <div className="gd-dashboard__content">
           {/* ---------- Tabs ---------- */}
           <div className="gd-tabs" role="tablist" aria-label="Guide dashboard sections">
             {tabs.map((tab) => (
@@ -429,8 +502,99 @@ function GuideDashboard({ currentUser }) {
                 </div>}
             </section>
           )}
+          </div>
         </div>
       </main>
+      {isProfileEditorOpen && (
+        <div
+          className="gd-profile-modal__backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget && !isSavingProfile) {
+              setIsProfileEditorOpen(false);
+            }
+          }}
+        >
+          <section
+            className="gd-profile-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="gd-profile-modal-title"
+          >
+            <div className="gd-profile-modal__header">
+              <div>
+                <h2 id="gd-profile-modal-title">Edit guide profile</h2>
+                <p>Update the details travelers see on your profile.</p>
+              </div>
+              <button
+                type="button"
+                className="gd-profile-modal__close"
+                onClick={() => setIsProfileEditorOpen(false)}
+                disabled={isSavingProfile}
+                aria-label="Close profile editor"
+              >
+                ×
+              </button>
+            </div>
+            <form className="gd-profile-form" onSubmit={saveProfile}>
+              <label>
+                Full name
+                <input name="fullName" defaultValue={currentUser?.fullName || ''} minLength="2" maxLength="150" required />
+              </label>
+              <label>
+                Phone number
+                <input name="telephoneNumber" type="tel" defaultValue={currentUser?.telephoneNumber || ''} minLength="7" maxLength="20" required />
+              </label>
+              <label>
+                Base location
+                <input name="baseLocation" defaultValue={currentUser?.baseLocation || ''} minLength="2" maxLength="150" required />
+              </label>
+              <label>
+                Years of experience
+                <input name="yearsExperience" type="number" min="0" max="80" defaultValue={currentUser?.yearsExperience ?? 0} required />
+              </label>
+              <label>
+                Daily rate (LKR)
+                <input name="dailyRateLkr" type="number" min="0" max="10000000" step="100" defaultValue={currentUser?.dailyRateLkr ?? 0} required />
+              </label>
+              <label>
+                SLTDA license number
+                <input name="sltdaLicenseNumber" defaultValue={currentUser?.sltdaLicenseNumber || ''} minLength="2" maxLength="100" required />
+              </label>
+              <label className="gd-profile-form__wide">
+                Languages (comma-separated)
+                <input name="languages" defaultValue={(currentUser?.languages || []).join(', ')} placeholder="English, Sinhala" required />
+              </label>
+              <label className="gd-profile-form__wide">
+                About you
+                <textarea name="shortBio" defaultValue={currentUser?.shortBio || ''} minLength="10" maxLength="500" rows="4" required />
+              </label>
+              <label className="gd-profile-form__wide">
+                Profile photo (optional)
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  onChange={(event) => setProfilePhoto(event.target.files?.[0] || null)}
+                />
+                <small>JPG, PNG, WEBP, or GIF; maximum 5 MB.</small>
+              </label>
+              {profileError && <p className="gd-profile-form__error" role="alert">{profileError}</p>}
+              <div className="gd-profile-form__actions">
+                <button
+                  type="button"
+                  className="gd-button"
+                  onClick={() => setIsProfileEditorOpen(false)}
+                  disabled={isSavingProfile}
+                >
+                  Cancel
+                </button>
+                <button type="submit" className="gd-button gd-button--primary" disabled={isSavingProfile}>
+                  {isSavingProfile ? 'Saving…' : 'Save profile'}
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
+      )}
     </>
   );
 }

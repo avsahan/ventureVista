@@ -206,6 +206,116 @@ async function registerGuide(data) {
   }
 }
 
+async function updateGuideProfile(userId, data) {
+  const connection = await db.getConnection();
+
+  try {
+    await connection.beginTransaction();
+
+    const userColumns = await getTableColumns(connection, "users");
+    const guideColumns = await getTableColumns(connection, "guide_profiles");
+    const userNameColumn = userColumns.has("full_name") ? "full_name" : "name";
+    const requiredGuideColumns = [
+      "contact_number",
+      "location",
+      "years_experience",
+      "daily_charge_lkr",
+      "short_bio",
+      "languages",
+      "sltda_license_number",
+    ];
+
+    if (!userColumns.has(userNameColumn) || requiredGuideColumns.some((column) => !guideColumns.has(column))) {
+      const error = new Error("Guide profile storage is incomplete. Check the guide_profiles database schema.");
+      error.status = 503;
+      throw error;
+    }
+
+    const [users] = await connection.execute(
+      "SELECT role FROM users WHERE id = ? LIMIT 1",
+      [userId]
+    );
+    if (!users.length || users[0].role !== "guide") {
+      const error = new Error("Guide account required");
+      error.status = 403;
+      throw error;
+    }
+
+    const [profiles] = await connection.execute(
+      "SELECT sltda_license_number FROM guide_profiles WHERE user_id = ? LIMIT 1",
+      [userId]
+    );
+    if (!profiles.length) {
+      const error = new Error("Guide profile not found");
+      error.status = 404;
+      throw error;
+    }
+
+    const [duplicateLicenses] = await connection.execute(
+      "SELECT user_id FROM guide_profiles WHERE sltda_license_number = ? AND user_id <> ? LIMIT 1",
+      [data.sltdaLicenseNumber, userId]
+    );
+    if (duplicateLicenses.length) {
+      const error = new Error("SLTDA license number is already registered");
+      error.status = 409;
+      throw error;
+    }
+
+    if (data.profilePhoto && (
+      !guideColumns.has("profile_photo_data") ||
+      !guideColumns.has("profile_photo_mime_type")
+    )) {
+      const error = new Error("Guide photo storage is not configured. Apply migration 003-add-guide-profile-photo.sql.");
+      error.status = 503;
+      throw error;
+    }
+
+    await connection.execute(
+      `UPDATE users SET \`${userNameColumn}\` = ? WHERE id = ?`,
+      [data.fullName, userId]
+    );
+
+    const updates = {
+      full_name: data.fullName,
+      contact_number: data.telephoneNumber,
+      location: data.baseLocation,
+      years_experience: data.yearsExperience,
+      daily_charge_lkr: data.dailyRateLkr,
+      short_bio: data.shortBio,
+      languages: JSON.stringify(data.languages),
+      sltda_license_number: data.sltdaLicenseNumber,
+    };
+    const licenseChanged = profiles[0].sltda_license_number !== data.sltdaLicenseNumber;
+    if (licenseChanged && guideColumns.has("verification_status")) {
+      updates.verification_status = "pending";
+      if (guideColumns.has("verification_notes")) updates.verification_notes = null;
+      if (guideColumns.has("verified_at")) updates.verified_at = null;
+    }
+    if (data.profilePhoto) {
+      updates.profile_photo_data = data.profilePhoto.data;
+      updates.profile_photo_mime_type = data.profilePhoto.mimeType;
+    }
+
+    const fields = Object.entries(updates).filter(([column]) => guideColumns.has(column));
+    await connection.execute(
+      `UPDATE guide_profiles SET ${fields.map(([column]) => `\`${column}\` = ?`).join(", ")} WHERE user_id = ?`,
+      [...fields.map(([, value]) => value), userId]
+    );
+
+    await connection.commit();
+    const user = await getUserById(userId);
+    if (!user) {
+      throw new Error("Guide profile was updated but could not be loaded.");
+    }
+    return user;
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+}
+
 // ========================================
 // LOGIN
 // ========================================
@@ -415,6 +525,7 @@ async function getGuidePhoto(id) {
 module.exports = {
   registerTraveler,
   registerGuide,
+  updateGuideProfile,
   login,
   getUserById,
   listGuides,

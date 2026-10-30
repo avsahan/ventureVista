@@ -19,6 +19,13 @@
    `guide_profiles` table has `profile_photo_data` and
    `profile_photo_mime_type` columns. The backend `.env` determines which
    database the app uses.
+   For an existing trip database, also execute
+   `sql/migrations/006-align-trip-planner-columns.sql` in MySQL Workbench,
+   connected to the database named by `DB_NAME` in this backend's `.env`.
+   `CREATE TABLE IF NOT EXISTS` does not update columns in an existing table,
+   so rerunning `schema.sql` alone will not make trip dates optional. The
+   migration updates the existing `traveler_trips` columns without removing
+   trip data. Restart the backend after it completes.
 4. Start the backend:
 
    ```powershell

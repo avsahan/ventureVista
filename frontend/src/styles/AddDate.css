@@ -7,7 +7,8 @@
   color: #1a1a1a;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   min-height: 100vh;
-  padding: 24px 40px 100px 40px;
+  width: 100%;
+  padding: 24px clamp(14px, 2.2vw, 40px) 28px;
   box-sizing: border-box;
 }
 
@@ -49,12 +50,13 @@
 
 .itinerary-layout {
   display: grid;
-  grid-template-columns: 1fr 420px;
-  gap: 30px;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 420px);
+  gap: clamp(16px, 2vw, 30px);
   align-items: start;
 }
 
 .itinerary-schedule {
+  min-width: 0;
   background: transparent;
 }
 
@@ -89,9 +91,13 @@
 
 .itinerary-day-tabs {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(170px, 1fr));
+  grid-auto-columns: minmax(170px, 1fr);
+  grid-auto-flow: column;
   gap: 12px;
   margin-bottom: 24px;
+  overflow-x: auto;
+  padding-bottom: 4px;
 }
 
 .itinerary-day-tab {
@@ -253,6 +259,52 @@
   font-weight: bold;
   cursor: pointer;
   letter-spacing: 1px;
+}
+
+.itinerary-activity-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.itinerary-activity-actions button {
+  padding: 4px 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  background: #fff;
+  color: #475569;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.itinerary-activity-actions button:hover {
+  border-color: var(--itinerary-primary);
+  color: var(--itinerary-primary);
+}
+
+.itinerary-activity-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.itinerary-empty-state {
+  margin: 0;
+  padding: 28px 20px;
+  border: 1px solid #e2e8f0;
+  border-top: 0;
+  background: #fff;
+  color: #64748b;
+  text-align: center;
+}
+
+.itinerary-save-message {
+  margin: 10px 0 0;
+  color: #166534;
+  font-size: 13px;
+}
+
+.itinerary-save-message.is-error {
+  color: #b91c1c;
 }
 
 .itinerary-activity-desc {
@@ -550,18 +602,16 @@
 }
 
 .itinerary-bottom-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  position: static;
   background: #ffffff;
   border-top: 1px solid #e2e8f0;
-  padding: 16px 40px;
+  border-radius: 12px;
+  margin-top: 24px;
+  padding: 16px clamp(14px, 2.2vw, 40px);
   display: flex;
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
-  z-index: 100;
 }
 
 .itinerary-btn-quiet {
@@ -663,7 +713,7 @@
 
 @media (max-width: 560px) {
   .itinerary-page {
-    padding: 18px 14px 100px;
+    padding: 18px 14px 24px;
   }
 
   .itinerary-trip-header {
@@ -707,10 +757,16 @@
 
   .itinerary-bottom-bar {
     padding: 12px 14px;
+    gap: 10px;
   }
 
   .itinerary-btn-primary {
     padding: 11px 16px;
+  }
+
+  .itinerary-bottom-bar .itinerary-btn-quiet,
+  .itinerary-bottom-bar .itinerary-btn-primary {
+    font-size: 13px;
   }
 
   .itinerary-add-activity-form {

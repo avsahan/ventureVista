@@ -453,7 +453,9 @@ function App() {
         {activePage === 'dashboard' && (
           <TravelerDashboard currentUser={currentUser} onPlanTrip={() => setActivePage('planner')} />
         )}
-        {activePage === 'guide-dashboard' && <GuideDashboard currentUser={currentUser} />}
+        {activePage === 'guide-dashboard' && (
+          <GuideDashboard currentUser={currentUser} onProfileUpdated={setCurrentUser} />
+        )}
         {activePage === 'permission' && (
           <Permission onCancel={() => setActivePage('landing')} />
         )}

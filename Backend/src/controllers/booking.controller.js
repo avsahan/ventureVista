@@ -3,7 +3,7 @@ const bookingService = require("../services/booking.service");
 
 const activitySchema = z.object({
   id: z.union([z.string(), z.number()]).optional(),
-  day: z.coerce.number().int().min(0).max(60),
+  day: z.coerce.number().int().min(0).max(365),
   time: z.string().max(10),
   duration: z.string().max(30).optional().default(""),
   title: z.string().trim().min(1).max(100),
@@ -26,7 +26,10 @@ const tripSchema = z.object({
   visibility: z.enum(["friends", "private", "public"]).default("friends"),
   budget: z.coerce.number().finite().min(0).max(1000000000).default(0),
   activities: z.array(activitySchema).max(500).default([]),
-});
+}).refine(
+  ({ startDate, endDate }) => !startDate || !endDate || startDate <= endDate,
+  { message: "Trip end date must be on or after the start date", path: ["endDate"] }
+);
 
 function validate(schema, value) {
   const result = schema.safeParse(value);

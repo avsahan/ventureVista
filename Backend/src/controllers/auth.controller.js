@@ -72,6 +72,17 @@ const guideSchema = z.object({
     .max(100),
 });
 
+const guideProfileUpdateSchema = z.object({
+  fullName: z.string().trim().min(2).max(150),
+  telephoneNumber: z.string().trim().min(7).max(20),
+  yearsExperience: z.coerce.number().int().min(0).max(80),
+  dailyRateLkr: z.coerce.number().finite().min(0).max(10000000),
+  baseLocation: z.string().trim().min(2).max(150),
+  languages: z.array(z.string().trim().min(1).max(50)).min(1).max(20),
+  shortBio: z.string().trim().min(10).max(500),
+  sltdaLicenseNumber: z.string().trim().min(2).max(100),
+});
+
 const loginSchema = z.object({
   email: emailSchema,
   password: z.string().min(1).max(72),
@@ -161,9 +172,39 @@ async function guidePhoto(req, res, next) {
     }
 
     res.set("Content-Type", photo.mimeType);
-    res.set("Cache-Control", "public, max-age=86400");
+    res.set("Cache-Control", "private, no-cache");
     res.set("X-Content-Type-Options", "nosniff");
     return res.send(photo.data);
+  } catch (error) {
+    return next(error);
+  }
+}
+
+async function updateGuideProfile(req, res, next) {
+  try {
+    let profile;
+    try {
+      profile = JSON.parse(req.body.profile);
+    } catch {
+      const error = new Error("Please submit a valid guide profile");
+      error.status = 400;
+      throw error;
+    }
+
+    const data = validate(guideProfileUpdateSchema, profile);
+    if (req.file) {
+      data.profilePhoto = {
+        data: req.file.buffer,
+        mimeType: req.file.mimetype,
+      };
+    }
+
+    const user = await authService.updateGuideProfile(req.userId, data);
+    return res.status(200).json({
+      success: true,
+      message: "Guide profile updated successfully",
+      user,
+    });
   } catch (error) {
     return next(error);
   }
@@ -274,6 +315,7 @@ module.exports = {
   registerTraveler,
   registerGuide,
   guidePhoto,
+  updateGuideProfile,
   login,
   me,
   listGuides,
