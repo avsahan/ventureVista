@@ -26,6 +26,12 @@
    so rerunning `schema.sql` alone will not make trip dates optional. The
    migration updates the existing `traveler_trips` columns without removing
    trip data. Restart the backend after it completes.
+   To enable trip cancellation for an existing database, also run
+   `sql/migrations/007-add-cancelled-trip-status.sql` in the same database.
+   It preserves existing trip records and allows cancelled plans to remain
+   stored as history.
+   Run `sql/migrations/008-add-cancelled-booking-status.sql` as well so
+   cancelled guide requests can be recorded and shown in the guide dashboard.
 4. Start the backend:
 
    ```powershell

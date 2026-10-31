@@ -158,6 +158,10 @@ function mapBooking(row) {
 
     message: row.request_message || "",
     status: row.status,
+    tripStatus: row.trip_status,
+    tripBudget: Number(row.trip_budget || 0),
+    visibility: row.visibility,
+    tripActivities: activities,
 
     image:
       "https://images.unsplash.com/photo-150053085085?auto=format&fit=crop&w=900&q=80",
@@ -337,6 +341,74 @@ async function updateTrip(travelerId, tripId, data) {
   return mapTrip(rows[0]);
 }
 
+async function cancelTrip(travelerId, tripId) {
+  const user = await getUser(travelerId);
+  if (!isRole(user, "traveler")) {
+    throw httpError("Traveler account required", 403);
+  }
+
+  const numericTripId = Number(tripId);
+  if (!Number.isSafeInteger(numericTripId) || numericTripId <= 0) {
+    throw httpError("Invalid trip ID", 400);
+  }
+
+  const connection = await db.getConnection();
+  try {
+    await connection.beginTransaction();
+    const [rows] = await connection.execute(
+      `SELECT id, destination, start_date, end_date, visibility, budget,
+              activities, status, created_at
+       FROM traveler_trips
+       WHERE id = ? AND traveler_id = ?
+       LIMIT 1
+       FOR UPDATE`,
+      [numericTripId, travelerId]
+    );
+
+    if (!rows.length) {
+      throw httpError("Trip not found", 404);
+    }
+
+    const trip = rows[0];
+    if (trip.status === "completed") {
+      throw httpError("A completed trip cannot be cancelled", 409);
+    }
+
+    if (trip.status !== "cancelled") {
+      await connection.execute(
+        `UPDATE traveler_trips
+         SET status = 'cancelled'
+         WHERE id = ? AND traveler_id = ?`,
+        [numericTripId, travelerId]
+      );
+      trip.status = "cancelled";
+    }
+
+    await connection.execute(
+      `UPDATE bookings
+       SET status = 'cancelled',
+           request_message = CONCAT(
+             'Trip cancelled by traveler. ',
+             LEFT(COALESCE(request_message, ''), 1000)
+           )
+       WHERE trip_id = ?
+         AND traveler_id = ?
+         AND status IN ('pending', 'countered', 'accepted')`,
+      [numericTripId, travelerId]
+    );
+
+    await connection.commit();
+    const cancelledBookings = (await listBookings(travelerId))
+      .filter((booking) => Number(booking.tripId) === numericTripId && booking.status === "cancelled");
+    return { trip: mapTrip(trip), bookings: cancelledBookings };
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+}
+
 // --------------------------------------------------
 // List bookings for traveler or guide dashboards
 // --------------------------------------------------
@@ -359,7 +431,10 @@ async function listBookings(userId) {
         t.destination,
         t.start_date,
         t.end_date,
+        t.visibility,
+        t.budget AS trip_budget,
         t.activities,
+        t.status AS trip_status,
 
         traveler.\`${nameColumn}\` AS traveler_name,
         guide.\`${nameColumn}\` AS guide_name
@@ -425,7 +500,7 @@ async function createBooking(userId, tripId, data) {
 
   // Make sure the trip belongs to this traveler.
   const [trips] = await db.execute(
-    `SELECT id
+    `SELECT id, status
      FROM traveler_trips
      WHERE id = ? AND traveler_id = ?
      LIMIT 1`,
@@ -434,6 +509,9 @@ async function createBooking(userId, tripId, data) {
 
   if (!trips.length) {
     throw httpError("Trip not found", 404);
+  }
+  if (trips[0].status === "cancelled") {
+    throw httpError("A cancelled trip cannot receive a guide request", 409);
   }
 
   // Make sure the selected user is actually a guide.
@@ -713,6 +791,7 @@ module.exports = {
   listTrips,
   createTrip,
   updateTrip,
+  cancelTrip,
   listBookings,
   createBooking,
   updateBooking,

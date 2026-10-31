@@ -7,6 +7,7 @@ router.use(requireAuth);
 router.get("/trips", controller.listTrips);
 router.post("/trips", controller.createTrip);
 router.patch("/trips/:tripId", controller.updateTrip);
+router.patch("/trips/:tripId/cancel", controller.cancelTrip);
 router.get("/bookings", controller.listBookings);
 router.post("/trips/:tripId/bookings", controller.createBooking);
 router.patch("/bookings/:bookingId", controller.updateBooking);

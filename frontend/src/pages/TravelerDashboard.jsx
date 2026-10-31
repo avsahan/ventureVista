@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getBookings, getTrips, respondToCounterOffer } from '../api/auth';
+import { cancelTrip, getBookings, getTrips, respondToCounterOffer } from '../api/auth';
 import BookingChat from '../components/BookingChat';
 import '../styles/TravelerDashboard.css';
 
@@ -106,7 +106,7 @@ function ProfileCard({ profile, onChange, onSave, saved }) {
   );
 }
 
-function UpcomingTripCard({ trip, onMessage, onItinerary, onRespondCounterOffer }) {
+function UpcomingTripCard({ trip, onMessage, onItinerary, onRespondCounterOffer, onCancelTrip, isCancelling }) {
   return (
     <article className="rl-trip-card">
       <div className="rl-trip-card__main">
@@ -157,6 +157,14 @@ function UpcomingTripCard({ trip, onMessage, onItinerary, onRespondCounterOffer 
               </button>
               <button className="rl-button rl-button--primary" type="button" onClick={() => onItinerary(trip)}>
                 View itinerary
+              </button>
+              <button
+                className="rl-button rl-button--danger"
+                type="button"
+                onClick={() => onCancelTrip(trip)}
+                disabled={isCancelling}
+              >
+                {isCancelling ? 'Cancelling…' : 'Cancel trip'}
               </button>
             </div>
           </div>
@@ -220,6 +228,7 @@ function TravelerDashboard({ currentUser, onPlanTrip }) {
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [notice, setNotice] = useState('');
+  const [cancellingTripId, setCancellingTripId] = useState(null);
   const [saved, setSaved] = useState(false);
   const [profile, setProfile] = useState(() => ({
     name: currentUser?.fullName || '',
@@ -256,6 +265,7 @@ function TravelerDashboard({ currentUser, onPlanTrip }) {
     const guideInitials = guideName.split(/\s+/).map((part) => part[0]).slice(0, 2).join('').toUpperCase();
     return {
       ...trip,
+      tripStatus: trip.status,
       region: trip.destination,
       title: trip.destination,
       dates,
@@ -281,7 +291,7 @@ function TravelerDashboard({ currentUser, onPlanTrip }) {
       image: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80',
     };
   });
-  const upcomingTrips = tripCards.filter((trip) => trip.status !== 'completed');
+  const upcomingTrips = tripCards.filter((trip) => !['completed', 'cancelled'].includes(trip.tripStatus));
   const completedTrips = tripCards.filter((trip) => trip.status === 'completed');
   const chatBookings = bookings.filter((booking) => ['accepted', 'countered'].includes(booking.status));
   const selectedBooking = chatBookings.find((booking) => Number(booking.id) === Number(selectedBookingId)) || chatBookings[0];
@@ -319,6 +329,30 @@ function TravelerDashboard({ currentUser, onPlanTrip }) {
       showNotice(status === 'accepted' ? 'Guide offer accepted.' : 'Guide offer declined.');
     } catch (error) {
       showNotice(error.message);
+    }
+  };
+
+  const cancelPlannedTrip = async (trip) => {
+    if (!window.confirm(`Cancel your trip to ${trip.destination}? This will remove it from your upcoming trips.`)) {
+      return;
+    }
+
+    setCancellingTripId(trip.id);
+    setNotice('');
+    try {
+      const { bookings: cancelledBookings = [] } = await cancelTrip(trip.id);
+      setTrips((current) => current.map((item) => (
+        Number(item.id) === Number(trip.id) ? { ...item, status: 'cancelled' } : item
+      )));
+      setBookings((current) => current.map((booking) => {
+        const cancelled = cancelledBookings.find((item) => Number(item.id) === Number(booking.id));
+        return cancelled ? { ...booking, ...cancelled } : booking;
+      }));
+      showNotice(`Your trip to ${trip.destination} was cancelled.`);
+    } catch (error) {
+      showNotice(error.message || 'Unable to cancel this trip. Please try again.');
+    } finally {
+      setCancellingTripId(null);
     }
   };
 
@@ -406,6 +440,8 @@ function TravelerDashboard({ currentUser, onPlanTrip }) {
                         onMessage={openChat}
                         onItinerary={(t) => showNotice(`Opening the itinerary for ${t.title}…`)}
                         onRespondCounterOffer={respondToOffer}
+                        onCancelTrip={cancelPlannedTrip}
+                        isCancelling={Number(cancellingTripId) === Number(trip.id)}
                       />
                     ))}
                     {!isLoading && upcomingTrips.length === 0 && (

@@ -32,6 +32,8 @@ io.use((socket, next) => {
 });
 
 io.on("connection", (socket) => {
+  socket.join(`user:${socket.data.userId}`);
+
   socket.on("booking:join", async (bookingId, acknowledge = () => {}) => {
     try {
       const authorized = await bookingService.canAccessBooking(socket.data.userId, bookingId);

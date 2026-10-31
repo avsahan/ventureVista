@@ -75,7 +75,7 @@ CREATE TABLE IF NOT EXISTS traveler_trips (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP,
-    status VARCHAR(30) DEFAULT 'planned',
+    status VARCHAR(30) NOT NULL DEFAULT 'planning',
     PRIMARY KEY (id),
     KEY idx_trip_traveler (traveler_id),
     CONSTRAINT fk_trip_traveler
@@ -93,8 +93,7 @@ CREATE TABLE IF NOT EXISTS bookings (
     offered_budget DECIMAL(12,2) DEFAULT 0.00,
     counter_offer DECIMAL(12,2) NULL,
     request_message TEXT NULL,
-    status ENUM('pending', 'countered', 'accepted', 'rejected')
-        DEFAULT 'pending',
+    status VARCHAR(30) NOT NULL DEFAULT 'pending',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
     KEY idx_booking_trip (trip_id),

@@ -700,10 +700,13 @@
 .rl-guide-mini strong { color: #40554a; font-size: 0.68rem; }
 .rl-avatar { display: inline-grid; width: 34px; height: 34px; flex: 0 0 34px; place-items: center; border-radius: 50%; background: #e6f0e9; color: #477260; font-size: 0.67rem; font-weight: 700; }
 .rl-avatar--sm { width: 29px; height: 29px; flex-basis: 29px; }
-.rl-trip-card__actions { gap: 7px; }
+.rl-trip-card__actions { flex-wrap: wrap; gap: 7px; }
 .rl-button { display: inline-flex; min-height: 50px; width: 150px; align-items: center; justify-content: center; gap: 6px; padding: 0 10px; border: 1px solid transparent; border-radius: 5px; font: inherit; font-size: 0.80rem; font-weight: 700; cursor: pointer; }
 .rl-button--outline { border-color: #c9d9ce; background: #0758a6;; color: #fff; }
 .rl-button--primary { background: #0758a6;; color: #fff; }
+.rl-button--danger { border-color: #b42318; background: #b42318; color: #fff; }
+.rl-button--danger:hover { border-color: #8f1c13; background: #8f1c13; color: #fff; }
+.rl-button--danger:disabled { cursor: wait; opacity: .65; }
 .rl-button--block { width: 100%; }
 .rl-button--sm { min-height: 30px; font-size: 0.62rem; }
 .rl-trip-card__note { display: flex; gap: 8px; padding: 9px 14px; border-top: 1px solid #edf0ec; background: #fafbf9; color: #7a887f; font-size: 0.64rem; }
@@ -803,7 +806,7 @@
   .rl-trip-card__media img,.rl-trip-card__media--small img { min-height: 138px; }
   .rl-trip-card__footer { align-items: flex-start; flex-direction: column; }
   .rl-trip-card__actions { width: 100%; }
-  .rl-trip-card__actions .rl-button { flex: 1; }
+  .rl-trip-card__actions .rl-button { flex: 1 1 130px; }
   .rl-contact-list { grid-template-columns: 1fr; }
   .rl-trip-banner small { white-space: normal; }
 }

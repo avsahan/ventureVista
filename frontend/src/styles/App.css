@@ -68,6 +68,7 @@ body {
 .download-buttons button,
 .adventure-copy button {
  display: inline-flex;
+ margin-top: 3rem;
  align-items: center;
  justify-content: center;
  border: none;

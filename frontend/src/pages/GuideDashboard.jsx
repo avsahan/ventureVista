@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import '../styles/GuideDashboard.css';
 import { getAssetUrl, getBookings, updateBooking, updateGuideProfile } from '../api/auth';
+import { openBookingSocket } from '../api/bookingSocket';
 import BookingChat from '../components/BookingChat';
 
 /* ---------- Icons ---------- */
@@ -69,6 +70,7 @@ const statusLabels = {
   countered: 'Counter offer sent',
   accepted: 'Confirmed',
   declined: 'Declined',
+  cancelled: 'Cancelled by traveler',
 };
 
 const formatMoney = (amount) => `LKR ${amount.toLocaleString('en-US')}`;
@@ -87,7 +89,9 @@ function GuideDashboard({ currentUser, onProfileUpdated }) {
   const [counterId, setCounterId] = useState(null);
   const [counterValue, setCounterValue] = useState('');
   const [chatBookingId, setChatBookingId] = useState(null);
+  const [selectedTrip, setSelectedTrip] = useState(null);
   const [loadError, setLoadError] = useState('');
+  const [bookingNotice, setBookingNotice] = useState('');
   const [isProfileEditorOpen, setIsProfileEditorOpen] = useState(false);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [profileError, setProfileError] = useState('');
@@ -98,9 +102,40 @@ function GuideDashboard({ currentUser, onProfileUpdated }) {
   const verificationStatus = currentUser?.verificationStatus || 'pending';
 
   useEffect(() => {
+    let isActive = true;
+    const socket = openBookingSocket();
+    const handleTripCancelled = (booking) => {
+      if (!booking || Number(booking.guideId) !== Number(currentUser?.id)) return;
+      setRequests((current) => {
+        const exists = current.some((request) => Number(request.id) === Number(booking.id));
+        return exists
+          ? current.map((request) => Number(request.id) === Number(booking.id) ? { ...request, ...booking } : request)
+          : [...current, booking];
+      });
+      setBookingNotice(`Trip to ${booking.destination} was cancelled by ${booking.traveler}. The guide request has been cancelled.`);
+    };
+
     getBookings()
-      .then(({ bookings } = {}) => setRequests((Array.isArray(bookings) ? bookings : []).filter((booking) => Number(booking.guideId) === Number(currentUser?.id))))
-      .catch((error) => setLoadError(error.message));
+      .then(({ bookings } = {}) => {
+        if (isActive) {
+          setRequests((current) => {
+            const loaded = (Array.isArray(bookings) ? bookings : [])
+              .filter((booking) => Number(booking.guideId) === Number(currentUser?.id));
+            const realtimeBookings = current.filter((booking) => booking.status === 'cancelled');
+            return [...loaded, ...realtimeBookings.filter((booking) => !loaded.some((item) => Number(item.id) === Number(booking.id)))];
+          });
+        }
+      })
+      .catch((error) => {
+        if (isActive) setLoadError(error.message);
+      });
+
+    socket.on('booking:cancelled', handleTripCancelled);
+    return () => {
+      isActive = false;
+      socket.off('booking:cancelled', handleTripCancelled);
+      socket.disconnect();
+    };
   }, [currentUser?.id]);
 
   const pending = requests.filter((request) => ['pending', 'countered'].includes(request.status));
@@ -273,6 +308,7 @@ function GuideDashboard({ currentUser, onProfileUpdated }) {
           </div>
 
           {loadError && <p className="gd-empty" role="alert">{loadError}</p>}
+          {bookingNotice && <p className="gd-booking-notice" role="status">{bookingNotice}</p>}
 
           {/* ---------- Pending ---------- */}
           {activeTab === 'pending' && (
@@ -307,6 +343,13 @@ function GuideDashboard({ currentUser, onProfileUpdated }) {
                       </div>
 
                       <p className="gd-request__message">“{request.message}”</p>
+                      <button
+                        type="button"
+                        className="gd-button gd-trip-details__trigger"
+                        onClick={() => setSelectedTrip(request)}
+                      >
+                        View traveler trip details
+                      </button>
 
                       <div className="gd-request__footer">
                         <GuideStatus status={request.status} />
@@ -445,6 +488,9 @@ function GuideDashboard({ currentUser, onProfileUpdated }) {
                             <div>
                               <strong>{request.title}</strong>
                               <span>{request.location.split(',')[0]} · #{request.id}</span>
+                              {request.status === 'cancelled' && (
+                                <span className="gd-table__cancellation-note">{request.message}</span>
+                              )}
                             </div>
                           </div>
                         </td>
@@ -462,7 +508,7 @@ function GuideDashboard({ currentUser, onProfileUpdated }) {
                         </td>
                         <td><GuideStatus status={request.status} /></td>
                         <td className="gd-table__go">
-                          <button type="button" aria-label={`Open ${request.title}`}>
+                          <button type="button" aria-label={`View trip details for ${request.title}`} onClick={() => setSelectedTrip(request)}>
                             <ArrowIcon size={16} />
                           </button>
                         </td>
@@ -485,10 +531,30 @@ function GuideDashboard({ currentUser, onProfileUpdated }) {
               {requests.filter((request) => request.status === 'accepted').length === 0
                 ? <p className="gd-empty">Accept a booking before messaging a traveler.</p>
                 : <div className="gd-chat-list">
+                  <div className="gd-chat-list__heading">
+                    <div>
+                      <h3>Your conversations</h3>
+                      <p>Message travelers with confirmed bookings.</p>
+                    </div>
+                    <span>{requests.filter((request) => request.status === 'accepted').length} active</span>
+                  </div>
                   {requests.filter((request) => request.status === 'accepted').map((booking) => (
                     <article className="gd-chat-item" key={booking.id}>
-                      <div><strong>{booking.traveler}</strong><span>{booking.title}</span></div>
-                      <button className="gd-button gd-button--primary" type="button" onClick={() => setChatBookingId(booking.id)}>Open chat</button>
+                      <div className="gd-chat-item__identity">
+                        <span className="gd-chat-item__avatar" aria-hidden="true">
+                          {(booking.traveler || 'T').trim().charAt(0).toUpperCase()}
+                        </span>
+                        <div className="gd-chat-item__details">
+                          <strong>{booking.traveler}</strong>
+                          <span>{booking.title}</span>
+                          <small>{booking.dateLong}</small>
+                        </div>
+                      </div>
+                      <button className="gd-button gd-button--primary gd-chat-item__button" type="button" onClick={() => setChatBookingId(booking.id)}>
+                        <ChatIcon size={15} />
+                        Open chat
+                        <ArrowIcon size={14} />
+                      </button>
                     </article>
                   ))}
                   {chatBookingId && (
@@ -505,6 +571,60 @@ function GuideDashboard({ currentUser, onProfileUpdated }) {
           </div>
         </div>
       </main>
+      {selectedTrip && (
+        <div
+          className="gd-trip-details__backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setSelectedTrip(null);
+          }}
+        >
+          <section
+            className="gd-trip-details"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="gd-trip-details-title"
+          >
+            <header className="gd-trip-details__header">
+              <div>
+                <p>Traveler trip plan</p>
+                <h2 id="gd-trip-details-title">{selectedTrip.title}</h2>
+              </div>
+              <button type="button" onClick={() => setSelectedTrip(null)} aria-label="Close trip details">×</button>
+            </header>
+            <div className="gd-trip-details__facts">
+              <div><span>Traveler</span><strong>{selectedTrip.traveler}</strong></div>
+              <div><span>Travel dates</span><strong>{selectedTrip.duration}</strong></div>
+              <div><span>Trip budget</span><strong>{formatMoney(selectedTrip.tripBudget || 0)}</strong></div>
+              <div><span>Guide fee offered</span><strong>{formatMoney(selectedTrip.offeredBudget || 0)}</strong></div>
+              <div><span>Trip visibility</span><strong>{selectedTrip.visibility || 'Not specified'}</strong></div>
+            </div>
+            <div className="gd-trip-details__activities">
+              <h3>Planned activities</h3>
+              {Array.isArray(selectedTrip.tripActivities) && selectedTrip.tripActivities.length > 0 ? (
+                selectedTrip.tripActivities.map((activity, index) => (
+                  <article className="gd-trip-details__activity" key={activity.id ?? `${activity.day}-${index}`}>
+                    <div className="gd-trip-details__activity-heading">
+                      <span>Day {Number(activity.day || 0) + 1}</span>
+                      <strong>{activity.time || 'Time not set'}</strong>
+                    </div>
+                    <div>
+                      <h4>{activity.title || activity.name || 'Activity'}</h4>
+                      {(activity.desc || activity.description) && <p>{activity.desc || activity.description}</p>}
+                      {activity.location && <span className="gd-trip-details__activity-location">{activity.location}</span>}
+                      <div className="gd-trip-details__activity-meta">
+                        {activity.duration && <span>{activity.duration}</span>}
+                        <strong>{formatMoney(Number(activity.cost) || 0)}</strong>
+                      </div>
+                    </div>
+                  </article>
+                ))
+              ) : (
+                <p className="gd-muted">The traveler has not added activities to this trip yet.</p>
+              )}
+            </div>
+          </section>
+        </div>
+      )}
       {isProfileEditorOpen && (
         <div
           className="gd-profile-modal__backdrop"

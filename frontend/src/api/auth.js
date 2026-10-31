@@ -74,6 +74,7 @@ export const logout = () => post('/logout', {});
 export const getTrips = () => requestApi('/trips');
 export const createTrip = (data) => requestApi('/trips', { method: 'POST', body: JSON.stringify(data) });
 export const updateTrip = (tripId, data) => requestApi(`/trips/${tripId}`, { method: 'PATCH', body: JSON.stringify(data) });
+export const cancelTrip = (tripId) => requestApi(`/trips/${tripId}/cancel`, { method: 'PATCH', body: JSON.stringify({}) });
 export const getBookings = () => requestApi('/bookings');
 export const createBooking = (tripId, data) => requestApi(`/trips/${tripId}/bookings`, { method: 'POST', body: JSON.stringify(data) });
 export const updateBooking = (bookingId, data) => requestApi(`/bookings/${bookingId}`, { method: 'PATCH', body: JSON.stringify(data) });

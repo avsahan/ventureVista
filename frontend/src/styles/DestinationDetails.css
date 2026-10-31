@@ -1,6 +1,6 @@
 
 .destination-details {
-  max-width: 1120px;
+  max-width: 1280px;
   margin: 0 auto;
   padding: 2rem 1.5rem 4rem;
   color: #1e293b;
@@ -17,33 +17,47 @@
 }
 
 .destination-back:hover {
-  color: #0f766e;
+  color: #0057c2;
 }
 
 .destination-hero {
-  display: grid;
-  grid-template-columns: 1.1fr 1fr;
-  align-items: center;
-  gap: 2.5rem;
+  position: relative;
+  min-height: 480px;
+  overflow: hidden;
+  border-radius: 22px;
   margin-bottom: 3.5rem;
+  background: #10233d;
+}
+
+.destination-hero::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(7, 18, 35, 0.78), rgba(7, 18, 35, 0.3) 58%, rgba(7, 18, 35, 0.04));
+  content: '';
 }
 
 .destination-cover {
   width: 100%;
-  height: 390px;
+  height: 480px;
   display: block;
   object-fit: cover;
-  border-radius: 20px;
 }
 
 .destination-hero-content {
+  position: absolute;
+  z-index: 1;
+  top: 50%;
+  left: clamp(24px, 6vw, 76px);
+  width: min(560px, calc(100% - 48px));
+  transform: translateY(-50%);
   min-width: 0;
+  color: #fff;
 }
 
 .destination-category {
   display: inline-block;
-  margin-bottom: 0.8rem;
-  color: #0f766e;
+  margin-bottom: 0.85rem;
+  color: #bfdbfe;
   font-size: 0.8rem;
   font-weight: 700;
   letter-spacing: 0.08em;
@@ -51,37 +65,54 @@
 }
 
 .destination-hero-content h1 {
-  margin: 0 0 0.75rem;
-  color: #0f172a;
-  font-size: clamp(2rem, 4vw, 3rem);
+  margin: 0 0 0.65rem;
+  color: #fff;
+  font-size: clamp(2.4rem, 5vw, 4rem);
   line-height: 1.15;
 }
 
 .destination-location {
-  margin-bottom: 1rem;
-  color: #64748b;
+  margin: 0 0 0.9rem;
+  color: #dbeafe;
   font-size: 0.95rem;
 }
 
 .destination-hero-content > p:last-of-type {
-  color: #475569;
+  max-width: 500px;
+  margin: 0;
+  color: #f1f5f9;
   font-size: 1rem;
-  line-height: 1.8;
+  line-height: 1.7;
 }
 
 .destination-plan-button {
-  margin-top: 0.75rem;
-  padding: 0.85rem 1.2rem;
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 1.4rem;
+  padding: 0.85rem 1.35rem;
   border: none;
-  border-radius: 9px;
-  background: #0f766e;
+  border-radius: 10px;
+  background: #0057c2;
   color: white;
+  font: inherit;
   font-weight: 600;
   cursor: pointer;
+  box-shadow: 0 8px 20px rgba(0, 40, 100, 0.28);
+  transition: background-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
 }
 
 .destination-plan-button:hover {
-  background: #115e59;
+  background: #003d8a;
+  transform: translateY(-2px);
+  box-shadow: 0 11px 24px rgba(0, 40, 100, 0.35);
+}
+
+.destination-plan-button:focus-visible {
+  outline: 3px solid #bfdbfe;
+  outline-offset: 3px;
 }
 
 .destination-content-section {
@@ -199,12 +230,16 @@
 
 @media (max-width: 760px) {
   .destination-hero {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
+    min-height: 420px;
   }
 
   .destination-cover {
-    height: 300px;
+    height: 420px;
+  }
+
+  .destination-hero-content {
+    left: 28px;
+    width: calc(100% - 56px);
   }
 
   .destination-place-grid {
@@ -222,7 +257,37 @@
   }
 
   .destination-cover {
-    height: 240px;
+    height: 390px;
+  }
+
+  .destination-hero {
+    min-height: 390px;
+    border-radius: 16px;
+  }
+
+  .destination-hero::after {
+    background: linear-gradient(0deg, rgba(7, 18, 35, 0.88), rgba(7, 18, 35, 0.28));
+  }
+
+  .destination-hero-content {
+    top: auto;
+    bottom: 24px;
+    left: 20px;
+    width: calc(100% - 40px);
+    transform: none;
+  }
+
+  .destination-hero-content h1 {
+    font-size: 2.2rem;
+  }
+
+  .destination-hero-content > p:last-of-type {
+    font-size: 0.9rem;
+  }
+
+  .destination-plan-button {
+    width: 100%;
+    margin-top: 1rem;
   }
 
   .destination-place-grid,

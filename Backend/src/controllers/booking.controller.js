@@ -63,6 +63,17 @@ async function updateTrip(req, res, next) {
   } catch (error) { return next(error); }
 }
 
+async function cancelTrip(req, res, next) {
+  try {
+    const { trip, bookings } = await bookingService.cancelTrip(req.userId, req.params.tripId);
+    const io = req.app.get("io");
+    for (const booking of bookings) {
+      io?.to(`user:${booking.guideId}`).emit("booking:cancelled", booking);
+    }
+    return res.json({ success: true, trip, bookings, message: "Trip and guide requests cancelled successfully" });
+  } catch (error) { return next(error); }
+}
+
 async function listBookings(req, res, next) {
   try {
     const bookings = await bookingService.listBookings(req.userId);
@@ -126,6 +137,7 @@ module.exports = {
   listTrips,
   createTrip,
   updateTrip,
+  cancelTrip,
   listBookings,
   createBooking,
   updateBooking,

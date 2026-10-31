@@ -163,15 +163,11 @@ function DestinationDetails({
                     <span className="destination-category">
                         {destination.category}
                     </span>
-
                     <h1>Discover {destinationName}</h1>
-
                     <p className="destination-location">
                         {destination.location}
                     </p>
-
                     <p>{destination.description}</p>
-
                     <button
                         type="button"
                         className="destination-plan-button"
