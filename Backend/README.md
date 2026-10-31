@@ -45,3 +45,9 @@ For the Render deployment, set `CLIENT_ORIGINS` to
 `https://venture-vista-explore.vercel.app` (and any other trusted frontend
 origins, comma-separated), then redeploy the backend. The deployed frontend
 origin is also included in the backend's built-in allowlist.
+
+For the Vercel frontend, set `VITE_API_URL` to
+`https://rpv01-backend-o868.onrender.com` in the project environment variables
+for every deployment environment, then redeploy the frontend. The frontend
+also redirects the previous `rpv01-backend-1.onrender.com` setting to the
+current backend URL.

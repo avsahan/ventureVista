@@ -1,8 +1,4 @@
-const configuredApiUrl = import.meta.env.VITE_API_URL?.trim();
-const API_ORIGIN = (configuredApiUrl || (import.meta.env.DEV
-  ? 'http://localhost:5000'
-  : 'https://rpv01-backend-1.onrender.com')).replace(/\/+$/, '');
-const API_BASE = `${API_ORIGIN}/api/v1`;
+import { API_BASE, API_ORIGIN } from './config';
 
 export const getAssetUrl = (path) => {
   if (!path) return '';
