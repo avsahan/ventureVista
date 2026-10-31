@@ -1,7 +1,7 @@
 import '../styles/Header.css';
 import VLogo from '../assets/VLogo.png';
 
-const Header = ({ onAuthClick, onHomeClick, onHotelsClick, onDashboardClick, isDashboard, onGuideDashboardClick, isGuideDashboard, onPermissionClick, isPermission, currentUser, onLogout, authMessage }) => {
+const Header = ({ onAuthClick, onHomeClick, onDashboardClick, isDashboard, onGuideDashboardClick, isGuideDashboard, onPermissionClick, isPermission, currentUser, onLogout, authMessage }) => {
   return (
     <header className="app-header">
       <div className="header-shell">

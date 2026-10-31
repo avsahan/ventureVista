@@ -405,7 +405,6 @@ function App() {
       <Header
         onAuthClick={handleAuthClick}
         onHomeClick={() => navigateToLandingSection('home')}
-        onHotelsClick={() => navigateToLandingSection('hotels')}
         currentUser={currentUser}
         onLogout={handleLogout}
         authMessage={authMessage}

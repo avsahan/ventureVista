@@ -27,8 +27,7 @@ const fixedOrigins = new Set([
 ]);
 
 function isAllowedOrigin(origin) {
-  return !origin || fixedOrigins.has(origin) ||
-    /^https:\/\/rpv-01-frantend-[a-z0-9-]+\.vercel\.app$/.test(origin);
+  return !origin || fixedOrigins.has(origin);
 }
 
 app.locals.isAllowedOrigin = isAllowedOrigin;
