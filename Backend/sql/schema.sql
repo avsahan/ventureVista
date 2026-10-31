@@ -1,6 +1,5 @@
-CREATE DATABASE IF NOT EXISTS venturevista;
-USE venturevista;
-
+-- Select the database configured by DB_NAME before running this script.
+-- All tables use IF NOT EXISTS so existing records are preserved.
 
 -- 1. USERS TABLE
 CREATE TABLE IF NOT EXISTS users (
@@ -40,6 +39,7 @@ CREATE TABLE IF NOT EXISTS guide_profiles (
     profile_photo_path VARCHAR(500) NULL,
     profile_photo_data MEDIUMBLOB NULL,
     profile_photo_mime_type VARCHAR(50) NULL,
+    specialty VARCHAR(120) NOT NULL DEFAULT 'Local experiences',
     contact_number VARCHAR(20) NOT NULL,
     location VARCHAR(150) NOT NULL,
     years_experience INT UNSIGNED DEFAULT 0,
@@ -143,8 +143,17 @@ CREATE TABLE IF NOT EXISTS permission_requests (
     description TEXT NULL,
     context TEXT NULL,
     status VARCHAR(30) NOT NULL DEFAULT 'pending',
+    admin_notes VARCHAR(1000) NULL,
+    reviewed_by BIGINT UNSIGNED NULL,
+    reviewed_at DATETIME NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
         ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    KEY idx_perm_req_status (status),
+    KEY idx_perm_req_email (email),
+    KEY idx_perm_req_created (created_at),
+    CONSTRAINT fk_perm_req_reviewer
+        FOREIGN KEY (reviewed_by) REFERENCES users(id)
+        ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
