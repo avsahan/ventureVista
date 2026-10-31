@@ -40,3 +40,8 @@
 
 The `.env` file is local-only and is ignored by Git. The backend loads it from
 this directory regardless of the directory used to start the server.
+
+For the Render deployment, set `CLIENT_ORIGINS` to
+`https://venture-vista-explore.vercel.app` (and any other trusted frontend
+origins, comma-separated), then redeploy the backend. The deployed frontend
+origin is also included in the backend's built-in allowlist.

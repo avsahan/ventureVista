@@ -23,6 +23,7 @@ const configuredOrigins = (process.env.CLIENT_ORIGINS || "")
 const fixedOrigins = new Set([
   "http://localhost:5173",
   "http://127.0.0.1:5173",
+  "https://venture-vista-explore.vercel.app",
   ...configuredOrigins,
 ]);
 
