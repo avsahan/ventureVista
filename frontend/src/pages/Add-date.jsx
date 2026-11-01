@@ -7,6 +7,21 @@ const starterActivities = [
   { id: 3, day: 0, time: '14:30', duration: '90 min', title: 'Local craft workshop', desc: 'Slow down with a hands-on session led by a local maker. Create a small keepsake inspired by the hill country.', location: 'Ella town', tag: '2 travelers', cost: 1000 },
 ];
 
+
+const destinationImages = {
+  Ella: "https://images.unsplash.com/photo-1566296314736-6eaac1ca0cb9?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+  Sigiriya: "https://images.unsplash.com/photo-1612862862126-865765df2ded?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+  Colombo: "https://plus.unsplash.com/premium_photo-1733317260639-6fb8eb703c78?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+  Galle: "https://plus.unsplash.com/premium_photo-1733342463294-946b7bec4b1f?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+  NuwaraEliya: "https://images.unsplash.com/photo-1619974643633-12acfdcedd16?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+  Jaffna: "https://plus.unsplash.com/premium_photo-1689976472901-31911a474d4c?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+  Trincomalee: "https://plus.unsplash.com/premium_photo-1675624628827-e4ec8857f720?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+  Anuradhapura: "https://images.unsplash.com/photo-1759727257765-051ce04bd8b0?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+  Polonnaruwa: "https://images.unsplash.com/photo-1656339953897-e5d10d261ff1?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
+  Habarana: "https://images.unsplash.com/photo-1742190361448-3354d969ee81?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D"
+};
+
+
 function parseLocalDate(value) {
   if (!value) return null;
   const date = new Date(`${value}T00:00:00`);
@@ -178,8 +193,8 @@ function AddDate({ tripDetails = {}, onBack, onHome, onContinue, onSaveTrip }) {
         </button>
         <img
           className="itinerary-trip-header__image"
-          src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=85"
-          alt="Ella train landscape"
+          src={destinationImages[destination] || destinationImages.Ella}
+          alt={`Scenic view of ${destination}`}
         />
       </header>
 
