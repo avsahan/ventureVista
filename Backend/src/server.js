@@ -1,6 +1,6 @@
 
 const { createServer } = require("node:http");
-const pool = require("./config/db");
+const initializeDatabase = require("./config/initializeDatabase");
 const app = require("./app");
 const { Server } = require("socket.io");
 const jwt = require("jsonwebtoken");
@@ -48,15 +48,15 @@ io.on("connection", (socket) => {
 
 async function startServer() {
   try {
-    await pool.query("SELECT 1");
+    await initializeDatabase();
 
-    console.log("MySQL connected successfully");
+    console.log("MySQL connected and database schema is ready");
 
     server.listen(PORT, () => {
       console.log(`VentureVista API running on port ${PORT}`);
     });
   } catch (error) {
-    console.error("Database connection failed:", error.message);
+    console.error("Database initialization failed:", error.message);
     process.exit(1);
   }
 }

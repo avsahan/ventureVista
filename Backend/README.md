@@ -11,11 +11,12 @@
 2. Edit `.env` with the username and password for your local MySQL server. The
    example uses `root` with an empty password; change it if your MySQL account
    uses a password or a different username.
-3. Connect to the database named by `DB_NAME` and run `sql/schema.sql` in MySQL
-   Workbench to create its tables. The script does not switch databases: select
-   the intended database first. For Render's current `defaultdb` configuration,
-   select `defaultdb` before running it. The script creates missing tables
-   without dropping or overwriting existing tables or records.
+3. On startup, the backend connects to the database named by `DB_NAME` and
+   applies `sql/schema.sql` before accepting requests. The schema creates
+   missing tables without dropping or overwriting existing tables or records.
+   The database user must have permission to create tables; if startup reports
+   a schema permission error, grant that permission or run `sql/schema.sql`
+   manually against the database named by `DB_NAME`.
    For an existing database, connect MySQL Workbench to the same database used
    by this backend, open `sql/migrations/003-add-guide-profile-photo.sql`, and
    execute it before registering guides with photos. Confirm the
@@ -44,12 +45,12 @@
 The `.env` file is local-only and is ignored by Git. The backend loads it from
 this directory regardless of the directory used to start the server.
 
-If login or registration returns a database error stating that `users` is
-missing, the backend is connected to a database that has not been initialized.
-Confirm the database selected in MySQL Workbench matches `DB_NAME`, run
-`sql/schema.sql` there, and verify with `SELECT DATABASE();` and
-`SHOW TABLES LIKE 'users';`. Do not change `DB_NAME` to another database unless
-that database is also the one initialized with the application schema.
+The backend does not change `DB_NAME` or create the database itself. Ensure the
+configured database already exists and that the backend database user can
+create tables in it. If startup cannot initialize the schema, check the
+database connection and permissions in the Render logs; you can verify the
+selected database with `SELECT DATABASE();` and its users table with
+`SHOW TABLES LIKE 'users';`.
 
 For the Render deployment, set `CLIENT_ORIGINS` to
 `https://venture-vista-explore.vercel.app` (and any other trusted frontend
