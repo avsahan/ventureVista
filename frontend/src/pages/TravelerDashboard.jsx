@@ -30,7 +30,7 @@ function ProfileCard({ profile, onChange, onSave, saved }) {
         <div className="rl-profile__photo-wrap">
           <img
             className="rl-profile__photo"
-            src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=85"
+            src="https://img.icons8.com/fluency-systems-regular/200/user--v1.png?utm_source=chatgpt.com"
             alt={profile.name}
           />
           {/* <button className="rl-profile__camera" type="button" aria-label="Change photo"></button> */}
