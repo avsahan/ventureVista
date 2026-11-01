@@ -237,6 +237,10 @@ function App() {
     setActivePage('planner');
   };
 
+  const handlepages = (namePage) => {
+    setActivePage(namePage);
+  }
+
   const handleExploreDestination = (destinationName) => {
     setSelectedDestination(destinationName);
     setActivePage('destination');
@@ -447,7 +451,7 @@ function App() {
           />
         )}
         {activePage === 'guides' && (
-          <GuideSelect tripDetails={tripDetails} onBack={() => setActivePage('itinerary')} onRequestGuide={handleRequestGuide} />
+          <GuideSelect tripDetails={tripDetails} onBack={() => setActivePage('itinerary')} onRequestGuide={handleRequestGuide} onDashboard={handlepages}/>
         )}
         {activePage === 'dashboard' && (
           <TravelerDashboard currentUser={currentUser} onPlanTrip={() => setActivePage('planner')} />

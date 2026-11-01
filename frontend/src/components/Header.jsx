@@ -16,7 +16,6 @@ const Header = ({ onAuthClick, onHomeClick, onDashboardClick, isDashboard, onGui
               type="button"
               className={`nav-link nav-dashboard-link${isPermission ? ' active' : ''}`}
               onClick={onPermissionClick}
-              onClick={() => { navigateTo("Permission") }}
             >
               Permission
             </button>

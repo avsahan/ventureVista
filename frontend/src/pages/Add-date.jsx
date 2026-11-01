@@ -178,7 +178,7 @@ function AddDate({ tripDetails = {}, onBack, onHome, onContinue, onSaveTrip }) {
         </button>
         <img
           className="itinerary-trip-header__image"
-          src="https://d1ynolcus8dvgv.cloudfront.net/2019/01/nine-arch-2-5.jpg"
+          src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=85"
           alt="Ella train landscape"
         />
       </header>

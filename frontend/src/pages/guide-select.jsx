@@ -4,7 +4,7 @@ import '../styles/GuideSelect.css';
 
 const formatMoney = (amount) => `LKR ${amount.toLocaleString('en-LK')}`;
 
-function GuideProfileDialog({ guide, onClose, onRequest }) {
+function GuideProfileDialog({ guide, onClose, onRequest, onDashboard }) {
   if (!guide) return null;
 
   return (
@@ -19,7 +19,7 @@ function GuideProfileDialog({ guide, onClose, onRequest }) {
           <p>{guide.description}</p>
           <div className="guide-dialog__footer">
             <strong>{formatMoney(guide.price)} <span>/ day</span></strong>
-            <button type="button" className="guide-button guide-button--primary" onClick={() => onRequest(guide)}>
+            <button type="button" className="guide-button guide-button--primary" onClick={() => onRequest(guide) && onDashboard('dashboard')}>
               Request guide
             </button>
           </div>
@@ -29,8 +29,9 @@ function GuideProfileDialog({ guide, onClose, onRequest }) {
   );
 }
 
-function GuideSelect({ tripDetails = {}, onBack, onRequestGuide }) {
+function GuideSelect({ tripDetails = {}, onBack, onRequestGuide, onDashboard }) {
   const [guides, setGuides] = useState([]);
+  const [requestedGuides, setRequestedGuides] = useState(false);
   const [query] = useState('');
   const [specialty] = useState('all');
   const [selectedGuide, setSelectedGuide] = useState(null);
@@ -72,6 +73,7 @@ function GuideSelect({ tripDetails = {}, onBack, onRequestGuide }) {
       await onRequestGuide(guide);
       setNotice(`Your request for ${guide.name} was sent.`);
       setSelectedGuide(null);
+      setRequestedGuides(true);
     } catch (error) {
       setNotice(error.message);
     }
@@ -125,17 +127,11 @@ function GuideSelect({ tripDetails = {}, onBack, onRequestGuide }) {
               <article className="guide-card" key={guide.id || guide.name}>
                 <div className="guide-card__photo-wrap">
                   <img className="guide-card__photo" src={getAssetUrl(guide.image)} alt={guide.name} loading="lazy" />
-                  {/* <span className="guide-card__badge">
-                    {guide.verificationStatus === 'pending' ? 'Pending verification' : 'Vetted local guide'}
-                  </span> */}
                 </div>
                 <div className="guide-card__body">
                   <p className="guide-card__location"><span aria-hidden="true">●</span> {guide.location}</p>
                   <div className="guide-card__name-row">
                     <h3>{guide.name}</h3>
-                    {/* {guide.rating
-                      ? <span className="guide-card__rating" aria-label={`${guide.rating} out of 5 stars`}>★ {guide.rating}</span>
-                      : <span className="guide-card__rating">New</span>} */}
                   </div>
                   <p className="guide-card__specialty">{guide.specialty}</p>
                   <p className="guide-card__description">{guide.description}</p>
@@ -159,10 +155,10 @@ function GuideSelect({ tripDetails = {}, onBack, onRequestGuide }) {
             <p className="guide-empty" role="status">No guides match those filters. Try a different name or specialty.</p>
           )}
         </section>
-
+        
         <footer className="guide-page__footer">
           <span>All guides are locally based and reviewed by travelers.</span>
-          <button type="button" className="guide-back" onClick={onBack}>Return to itinerary</button>
+          {requestedGuides === true && <button type="button" className="itinerary-btn-primary guide-button--primary" onClick={() => onDashboard('dashboard')}>Back To Dashboard</button>}
         </footer>
       </div>
 
