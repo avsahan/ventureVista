@@ -124,8 +124,8 @@ const Home = ({ role, onBack }) => {
             </div>
 
             <div className="form-group full-width">
-              <label htmlFor="traveler-country">Country of Origin</label>
-              <input id="traveler-country" name="country" type="text" autoComplete="country-name" placeholder="e.g. Australia" value={form.country} onChange={updateField} minLength="2" maxLength="100" required />
+              <label htmlFor="traveler-country">Religion/Origin</label>
+              <input id="traveler-country" name="country" type="text" autoComplete="country-name" placeholder="e.g. Colombo" value={form.country} onChange={updateField} minLength="2" maxLength="100" required />
             </div>
 
             <fieldset className="interest-options full-width">
