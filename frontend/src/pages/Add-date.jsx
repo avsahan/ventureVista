@@ -1,12 +1,7 @@
 import { useState } from 'react';
 import '../styles/AddDate.css';
 
-const starterActivities = [
-  { id: 1, day: 0, time: '08:00', duration: '2 hours', title: "Little Adam's peak trail", desc: 'Meet Nuwan for a gentle ridge walk through tea fields. Take in the valley views before the midday warmth.', location: "Little Adam's Peak, Ella", tag: 'Free entry', cost: 0 },
-  { id: 2, day: 0, time: '10:30', duration: '90 min', title: 'Tea estate tour & tasting', desc: 'Follow the journey from leaf to cup, explore the tea-making process and enjoy a guided tasting of local blends.', location: 'Tea estate, Ella', tag: '2 travelers', cost: 2000 },
-  { id: 3, day: 0, time: '14:30', duration: '90 min', title: 'Local craft workshop', desc: 'Slow down with a hands-on session led by a local maker. Create a small keepsake inspired by the hill country.', location: 'Ella town', tag: '2 travelers', cost: 1000 },
-];
-
+const starterActivities = [];
 
 const destinationImages = {
   Ella: "https://images.unsplash.com/photo-1566296314736-6eaac1ca0cb9?fm=jpg&q=60&w=3000&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=NHwxMjA3fDA%3D",
@@ -259,7 +254,7 @@ function AddDate({ tripDetails = {}, onBack, onHome, onContinue, onSaveTrip }) {
             >
               <label>
                 Activity
-                <input name="title" maxLength="100" placeholder="Activity name" defaultValue={editingActivity?.title || ''} required />
+                <input name="title" maxLength="100" placeholder="e.g.:- take a dinner at a resturent" defaultValue={editingActivity?.title || ''} required />
               </label>
               <label>
                 Time
@@ -275,7 +270,7 @@ function AddDate({ tripDetails = {}, onBack, onHome, onContinue, onSaveTrip }) {
               </label>
               <label className="itinerary-add-activity-form__wide">
                 Location
-                <input name="location" placeholder={destination} maxLength="150" defaultValue={editingActivity?.location || ''} />
+                <input name="location" placeholder={`e.g., ${destination}`} maxLength="150" defaultValue={editingActivity?.location || ''} />
               </label>
               <label className="itinerary-add-activity-form__wide">
                 Notes

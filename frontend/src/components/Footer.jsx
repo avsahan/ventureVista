@@ -34,7 +34,7 @@ const Footer = () => {
   return (
     <footer className="site-footer">
       <div className="footer-top">
-        <div className="brand-block">
+        <div className="brand-column">
           <div className="footer-logo">V</div>
 
           <p>
